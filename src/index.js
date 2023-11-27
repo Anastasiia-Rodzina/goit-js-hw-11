@@ -16,7 +16,7 @@ let lightbox = new SimpleLightbox('.img-container a', { captionDelay: 250 });
 loadMoreBtn.style.visibility = 'hidden';
 formEl.addEventListener('submit', handlerFormSubmit);
 
-function handlerFormSubmit(evt) {
+async function handlerFormSubmit(evt) {
   evt.preventDefault();
 
   galleryEl.innerHTML = '';
@@ -24,9 +24,15 @@ function handlerFormSubmit(evt) {
 
   const { searchQuery } = evt.currentTarget.elements;
   searchPhoto = searchQuery.value.trim().toLowerCase().split(' ').join('+');
-  getPhoto(searchPhoto, page, perPage)
-    .then(data => {
+
+  await getPhoto(searchPhoto, page, perPage);
+  try {
+    data => {
       const results = data.hits;
+      if (searchPhoto === '') {
+        galleryEl.innerHTML = '';
+        return;
+      }
       if (data.totalHits === 0) {
         Notify.failure(
           'Sorry, there are no images matching your search query. Please try again.'
@@ -39,17 +45,25 @@ function handlerFormSubmit(evt) {
       if (data.totalHits > perPage) {
         loadMoreBtn.style.visibility = 'visible';
       }
+      if (data.totalHits < perPage) {
+        loadMoreBtn.style.visibility = 'hidden';
+      }
+
       smoothScroll();
-    })
-    .catch(err => console.log(err));
-  loadMoreBtn.addEventListener('click', onLoadMore);
+    };
+  } catch {
+    err => console.log(err);
+  }
   evt.currentTarget.reset();
 }
 
-function onLoadMore() {
+loadMoreBtn.addEventListener('click', onLoadMore);
+
+async function onLoadMore() {
   page += 1;
-  getPhoto(searchPhoto, page, perPage)
-    .then(data => {
+  await getPhoto(searchPhoto, page, perPage);
+  try {
+    data => {
       const results = data.hits;
       const numberPage = Math.ceil(data.totalHits / perPage);
       createMarkup(results);
@@ -61,10 +75,13 @@ function onLoadMore() {
         );
         loadMoreBtn.removeEventListener('click', onLoadMore);
       }
+
       lightbox.refresh();
       smoothScroll();
-    })
-    .catch(err => console.log(err));
+    };
+  } catch {
+    err => console.log(err);
+  }
 }
 
 function createMarkup(searchAnswer) {

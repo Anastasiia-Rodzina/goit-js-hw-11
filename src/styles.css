@@ -54,7 +54,9 @@ button:focus {
 }
 
 .gallery {
+  margin: 0, auto;
   display: flex;
+  justify-content: center;
   column-gap: 25px;
   row-gap: 40px;
   flex-wrap: wrap;
@@ -78,5 +80,6 @@ button:focus {
 .load-more {
   display: flex;
   justify-content: center;
+  margin: auto;
   padding: 20px;
 }

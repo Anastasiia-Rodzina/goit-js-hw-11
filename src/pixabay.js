@@ -1,7 +1,7 @@
-const axios = require('axios').default;
+import axios from 'axios';
+axios.defaults.baseURL = 'https://pixabay.com/api/';
 
 export async function getPhoto(q, page, perPage) {
-  const BASE_URL = 'https://pixabay.com/api/';
   const params = new URLSearchParams({
     key: '40796330-ab77dcaa57b018c8ff827eca1',
     q: q,
@@ -12,7 +12,6 @@ export async function getPhoto(q, page, perPage) {
     per_page: perPage,
   });
 
-  const resp = await axios.get(`${BASE_URL}?${params}`);
-  console.log(resp);
+  const resp = await axios.get(`${params}`);
   return resp.data;
 }
