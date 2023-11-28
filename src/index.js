@@ -25,62 +25,55 @@ async function handlerFormSubmit(evt) {
   const { searchQuery } = evt.currentTarget.elements;
   searchPhoto = searchQuery.value.trim().toLowerCase().split(' ').join('+');
 
-  await getPhoto(searchPhoto, page, perPage);
   try {
-    data => {
-      const results = data.hits;
-      if (searchPhoto === '') {
-        galleryEl.innerHTML = '';
-        return;
-      }
-      if (data.totalHits === 0) {
-        Notify.failure(
-          'Sorry, there are no images matching your search query. Please try again.'
-        );
-      } else {
-        Notify.info(`Hooray! We found ${data.totalHits} images.`);
-        createMarkup(results);
-        lightbox.refresh();
-      }
-      if (data.totalHits > perPage) {
-        loadMoreBtn.style.visibility = 'visible';
-      }
-      if (data.totalHits < perPage) {
-        loadMoreBtn.style.visibility = 'hidden';
-      }
+    const data = await getPhoto(searchPhoto, page, perPage);
+    const results = data.hits;
+    if (searchPhoto === '' || data.totalHits === 0) {
+      Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+      galleryEl.innerHTML = '';
+      return;
+    }
+    Notify.info(`Hooray! We found ${data.totalHits} images.`);
+    createMarkup(results);
+    lightbox.refresh();
 
-      smoothScroll();
-    };
-  } catch {
-    err => console.log(err);
+    if (data.totalHits > perPage) {
+      loadMoreBtn.style.visibility = 'visible';
+    }
+    if (data.totalHits < perPage) {
+      loadMoreBtn.style.visibility = 'hidden';
+    }
+
+    smoothScroll();
+  } catch (err) {
+    console.log(err);
   }
-  evt.currentTarget.reset();
+  formEl.reset();
 }
 
 loadMoreBtn.addEventListener('click', onLoadMore);
 
 async function onLoadMore() {
   page += 1;
-  await getPhoto(searchPhoto, page, perPage);
   try {
-    data => {
-      const results = data.hits;
-      const numberPage = Math.ceil(data.totalHits / perPage);
-      createMarkup(results);
+    const data = await getPhoto(searchPhoto, page, perPage);
 
-      if (page === numberPage) {
-        loadMoreBtn.style.visibility = 'hidden';
-        Notify.info(
-          "We're sorry, but you've reached the end of search results."
-        );
-        loadMoreBtn.removeEventListener('click', onLoadMore);
-      }
+    const results = data.hits;
+    const numberPage = Math.ceil(data.totalHits / perPage);
+    createMarkup(results);
 
-      lightbox.refresh();
-      smoothScroll();
-    };
-  } catch {
-    err => console.log(err);
+    if (page === numberPage) {
+      loadMoreBtn.style.visibility = 'hidden';
+      Notify.info("We're sorry, but you've reached the end of search results.");
+      loadMoreBtn.removeEventListener('click', onLoadMore);
+    }
+
+    lightbox.refresh();
+    smoothScroll();
+  } catch (err) {
+    console.log(err);
   }
 }
 
